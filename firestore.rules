@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// Firestore 安全規則
+//
+// 這是家庭內部使用的小工具，安全性依靠兩件事：
+//   1. 必須先通過 Firebase 匿名登入
+//   2. 必須知道「家庭代碼」才找得到資料
+//
+// 所以請把家庭代碼取得長一點、難猜一點，例如 chou-cookie-8f3a2b，
+// 不要用 test、family、12345 這種容易被猜到的字。
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /families/{familyCode}/{document=**} {
+      allow read, write: if request.auth != null
+                         && familyCode.size() >= 8
+                         && familyCode.size() <= 64;
+    }
+
+    // 其他路徑一律禁止
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

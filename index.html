@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Cookie 的每日挑戰</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff9f43">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="每日挑戰">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-180.png">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===== 載入中 ===== -->
+<div id="boot" class="boot">
+  <div class="boot-star">⭐</div>
+  <p>載入中…</p>
+</div>
+
+<!-- ===== 首次設定：家庭代碼 ===== -->
+<div id="setup" class="overlay hidden">
+  <div class="sheet">
+    <h2>👋 歡迎</h2>
+    <p class="hint">輸入你家的「家庭代碼」。<br>在 iPad 和你的手機上輸入<b>同一組代碼</b>，資料就會同步。</p>
+    <input id="setup-code" class="big-input" type="text" inputmode="latin" autocapitalize="none"
+           autocomplete="off" spellcheck="false" placeholder="例如 cookie-family-2026">
+    <p id="setup-err" class="err hidden"></p>
+    <button id="setup-go" class="btn btn-primary btn-block">開始使用</button>
+    <p class="hint small" id="setup-mode"></p>
+  </div>
+</div>
+
+<!-- ===== 主畫面 ===== -->
+<div id="app" class="app hidden">
+
+  <!-- 頂部 -->
+  <header class="topbar">
+    <button id="kid-switch" class="kid-chip">
+      <span id="kid-emoji" class="kid-emoji">🐶</span>
+      <span id="kid-name" class="kid-name">Cookie</span>
+    </button>
+    <div class="points-badge" id="points-badge">
+      <span class="star">⭐</span><span id="points-value">0</span>
+    </div>
+  </header>
+
+  <main id="views">
+
+    <!-- ---------- 今日任務 ---------- -->
+    <section id="view-today" class="view">
+      <div class="day-head">
+        <button class="nav-day" id="day-prev" aria-label="前一天">‹</button>
+        <div class="day-title">
+          <h1 id="day-label">今天</h1>
+          <p id="day-date">—</p>
+        </div>
+        <button class="nav-day" id="day-next" aria-label="後一天">›</button>
+      </div>
+
+      <div class="progress-card">
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 120 120">
+            <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+            <circle id="ring-fg" class="ring-fg" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <div class="ring-text"><span id="ring-pct">0%</span></div>
+        </div>
+        <div class="progress-info">
+          <p id="progress-count">還沒有任務</p>
+          <p class="streak" id="streak-text">🔥 連續 0 天</p>
+        </div>
+      </div>
+
+      <div id="task-list" class="task-list"></div>
+
+      <div id="all-done" class="all-done hidden">
+        <div class="all-done-emoji">🏆</div>
+        <h2>全部完成！</h2>
+        <p>Cookie 你今天超棒的！</p>
+      </div>
+
+      <p id="today-empty" class="empty hidden">今天沒有安排任務 🎈<br><span class="small">請家長到「家長」頁新增</span></p>
+    </section>
+
+    <!-- ---------- 獎品商店 ---------- -->
+    <section id="view-shop" class="view hidden">
+      <h1 class="view-title">🎁 獎品商店</h1>
+      <p class="shop-balance">你有 <b id="shop-points">0</b> 點</p>
+      <div id="reward-list" class="reward-list"></div>
+      <p id="shop-empty" class="empty hidden">還沒有獎品 🎈<br><span class="small">請家長到「家長」頁新增</span></p>
+
+      <h2 class="section-title">我的兌換紀錄</h2>
+      <div id="redemption-list" class="redemption-list"></div>
+    </section>
+
+    <!-- ---------- 家長 ---------- -->
+    <section id="view-parent" class="view hidden">
+
+      <!-- PIN 鎖 -->
+      <div id="pin-gate" class="pin-gate">
+        <div class="lock-emoji">🔒</div>
+        <h1>家長專區</h1>
+        <p class="hint">請輸入 4 位數密碼</p>
+        <div class="pin-dots" id="pin-dots"><i></i><i></i><i></i><i></i></div>
+        <p id="pin-err" class="err hidden">密碼不對，再試一次</p>
+        <div class="pin-pad" id="pin-pad">
+          <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+          <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+          <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+          <button class="ghost" data-k="clear">清除</button><button data-k="0">0</button>
+          <button class="ghost" data-k="del">⌫</button>
+        </div>
+      </div>
+
+      <!-- 家長內容 -->
+      <div id="parent-body" class="hidden">
+        <div class="tabs" id="parent-tabs">
+          <button class="tab active" data-tab="tasks">任務</button>
+          <button class="tab" data-tab="rewards">獎品</button>
+          <button class="tab" data-tab="approve">兌換<span id="approve-dot" class="dot hidden"></span></button>
+          <button class="tab" data-tab="history">紀錄</button>
+          <button class="tab" data-tab="settings">設定</button>
+        </div>
+        <p class="save-note">✓ 所有變更都會立刻自動儲存，不需要按儲存鍵</p>
+
+        <!-- 任務 -->
+        <div class="tab-panel" data-panel="tasks">
+          <h2 class="section-title">每日固定任務</h2>
+          <p class="hint small">這些任務會依照設定的星期自動出現。</p>
+          <div id="tpl-list" class="admin-list"></div>
+          <button id="tpl-add" class="btn btn-primary btn-block">＋ 新增每日任務</button>
+
+          <h2 class="section-title">今天的臨時任務</h2>
+          <p class="hint small">只出現在今天，不會重複。</p>
+          <div id="once-list" class="admin-list"></div>
+          <button id="once-add" class="btn btn-block">＋ 新增今日臨時任務</button>
+        </div>
+
+        <!-- 獎品 -->
+        <div class="tab-panel hidden" data-panel="rewards">
+          <h2 class="section-title">獎品清單</h2>
+          <div id="reward-admin-list" class="admin-list"></div>
+          <button id="reward-add" class="btn btn-primary btn-block">＋ 新增獎品</button>
+        </div>
+
+        <!-- 兌換核准 -->
+        <div class="tab-panel hidden" data-panel="approve">
+          <h2 class="section-title">待處理的兌換</h2>
+          <div id="approve-list" class="admin-list"></div>
+          <h2 class="section-title">歷史</h2>
+          <div id="approve-history" class="admin-list"></div>
+        </div>
+
+        <!-- 紀錄 -->
+        <div class="tab-panel hidden" data-panel="history">
+          <div class="cal-head">
+            <button class="nav-day" id="cal-prev">‹</button>
+            <h2 id="cal-title">—</h2>
+            <button class="nav-day" id="cal-next">›</button>
+          </div>
+          <div class="cal-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+          <div id="cal-grid" class="cal-grid"></div>
+          <div class="cal-legend">
+            <span><i class="sw full"></i>全部完成</span>
+            <span><i class="sw part"></i>部分完成</span>
+            <span><i class="sw none"></i>沒完成</span>
+          </div>
+          <div id="cal-stats" class="cal-stats"></div>
+        </div>
+
+        <!-- 設定 -->
+        <div class="tab-panel hidden" data-panel="settings">
+          <h2 class="section-title">閱讀輔助</h2>
+          <div class="switch-row">
+            <div>
+              <div class="name">顯示注音</div>
+              <div class="meta hint small">在國字旁邊標注音，方便認字</div>
+            </div>
+            <button id="sw-zhuyin" class="switch" aria-label="顯示注音"></button>
+          </div>
+          <div class="field">
+            <label>小孩看到的字體</label>
+            <div class="seg" id="font-seg">
+              <button data-font="hei">黑體</button>
+              <button data-font="kai" class="kai">標楷體</button>
+            </div>
+            <p class="hint small">標楷體是台灣課本教寫字用的字體，筆畫比較清楚。</p>
+          </div>
+
+          <h2 class="section-title">小孩</h2>
+          <div id="kid-admin-list" class="admin-list"></div>
+          <button id="kid-add" class="btn btn-block">＋ 新增小孩</button>
+
+          <h2 class="section-title">點數調整</h2>
+          <div class="row-inline">
+            <input id="adj-points" class="big-input flex" type="number" inputmode="numeric" placeholder="例如 5 或 -3">
+            <button id="adj-go" class="btn">套用</button>
+          </div>
+          <p class="hint small">手動加減目前小孩的點數（獎勵或扣點）。</p>
+
+          <h2 class="section-title">家長密碼</h2>
+          <div class="row-inline">
+            <input id="new-pin" class="big-input flex" type="text" inputmode="numeric" maxlength="4" placeholder="新的 4 位數密碼">
+            <button id="pin-save" class="btn">儲存</button>
+          </div>
+
+          <h2 class="section-title">關於</h2>
+          <div class="info-box">
+            <p>版本：<b id="info-version">—</b></p>
+            <p>模式：<b id="info-mode">—</b></p>
+            <p>家庭代碼：<b id="info-code">—</b></p>
+          </div>
+          <button id="btn-export" class="btn btn-block">匯出備份 (JSON)</button>
+          <button id="btn-logout" class="btn btn-danger btn-block">切換家庭代碼</button>
+          <p class="hint small">做給 Cookie 的每日挑戰 💛</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 底部導覽 -->
+  <nav class="tabbar">
+    <button class="tabbar-btn active" data-view="today"><span>✅</span>今日</button>
+    <button class="tabbar-btn" data-view="shop"><span>🎁</span>獎品</button>
+    <button class="tabbar-btn" data-view="parent"><span>👨‍👩‍👧</span>家長</button>
+  </nav>
+</div>
+
+<!-- ===== 通用彈窗 ===== -->
+<div id="modal" class="overlay hidden">
+  <div class="sheet">
+    <h2 id="modal-title">標題</h2>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button id="modal-cancel" class="btn">取消</button>
+      <button id="modal-ok" class="btn btn-primary">確定</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+<div id="confetti" class="confetti" aria-hidden="true"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
