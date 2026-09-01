@@ -1,6 +1,6 @@
 // 主程式：開機流程、狀態管理、小孩端畫面。
 
-import { DEFAULT_CONFIG, forgetFamilyCode, rememberFamilyCode, rid, savedFamilyCode, store } from './store.js';
+import { DEFAULT_CONFIG, rememberFamilyCode, rid, savedFamilyCode, store } from './store.js';
 import { isCloudConfigured } from './config.js';
 import { initParent, renderParent } from './parent.js';
 import { VERSION } from './version.js';
@@ -21,14 +21,30 @@ const state = {
 
 // =========================================================== 開機
 
+/** 從網址的 #f= 取得家庭代碼。加到主畫面的圖示會把網址一起記住，
+ * 所以即使 iOS 清掉瀏覽器儲存空間，下次開啟依然拿得到代碼。 */
+function codeFromUrl() {
+  const m = location.hash.match(/[#&]f=([A-Za-z0-9-]{3,64})/);
+  return m ? m[1].toLowerCase() : '';
+}
+
+function writeCodeToUrl(code) {
+  const target = `#f=${code}`;
+  if (location.hash !== target) history.replaceState(null, '', target);
+}
+
 async function boot() {
   registerServiceWorker();
 
-  let code = savedFamilyCode();
+  let code = codeFromUrl() || savedFamilyCode();
   if (!code) code = await askFamilyCode();
 
-  await store.init(code);
+  // 先記住再連線。舊版本是連線成功才記，一旦 Firebase 慢或失敗
+  // 就等於沒存到，下次開啟又要重新輸入。
   rememberFamilyCode(code);
+  writeCodeToUrl(code);
+
+  await store.init(code);
 
   store.onConfig(async (cfg) => {
     if (!cfg) {
@@ -441,8 +457,9 @@ const ctx = {
   patchConfig,
   renderAll,
   switchView,
-  async resetFamily() {
-    forgetFamilyCode();
+  switchFamily(code) {
+    rememberFamilyCode(code);
+    location.hash = `f=${code}`;
     location.reload();
   },
 };

@@ -32,7 +32,7 @@ def open_app(context, label):
     errors = []
     page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
     page.on("pageerror", lambda e: errors.append(f"PAGEERROR: {e}"))
-    page.goto(BASE, wait_until="networkidle")
+    page.goto(BASE, wait_until="domcontentloaded")
     page.wait_for_selector("#setup:not(.hidden)", timeout=15000)
     page.fill("#setup-code", FAMILY)
     page.click("#setup-go")

@@ -445,10 +445,68 @@ function renderSettingsPanel() {
   renderSwitches();
 
   $('#btn-export').onclick = exportBackup;
-  $('#btn-logout').onclick = async () => {
-    if (!(await confirmBox('切換家庭代碼', '之後要重新輸入代碼。本機模式的資料會留在這台裝置上。', '切換'))) return;
-    CTX.resetFamily();
-  };
+  $('#btn-invite').onclick = copyInviteLink;
+  $('#btn-change-code').onclick = changeFamilyCode;
+}
+
+function inviteLink() {
+  return `${location.origin}${location.pathname}#f=${store.familyCode}`;
+}
+
+async function copyInviteLink() {
+  const link = inviteLink();
+  try {
+    await navigator.clipboard.writeText(link);
+    toast('邀請連結已複製，貼給家人即可');
+  } catch {
+    // iOS 或非 HTTPS 環境可能不給複製，就直接把連結顯示出來讓使用者手動複製
+    await modal({
+      title: '邀請連結',
+      bodyHTML:
+        '<p class="hint">複製這段網址傳給家人，對方點開就會自動設定好，不用手動輸入代碼。</p>' +
+        `<input class="big-input" id="f-link" value="${escapeHTML(link)}" readonly>`,
+      okText: '關閉',
+      cancelText: '',
+      onOpen: (body) => {
+        const input = body.querySelector('#f-link');
+        input.focus();
+        input.select();
+      },
+    });
+  }
+}
+
+async function changeFamilyCode() {
+  const result = await modal({
+    title: '更換家庭代碼',
+    bodyHTML:
+      `<p class="hint">目前代碼：<b>${escapeHTML(store.familyCode)}</b></p>` +
+      '<p class="hint small">⚠️ 換成新代碼後會看到一份<b>全新的空白資料</b>，' +
+      '原本的任務和點數不會跟著搬過去（舊資料仍留在雲端，換回舊代碼就會回來）。<br><br>' +
+      '如果你只是想讓其他裝置同步，<b>不要換代碼</b>，改用「複製邀請連結」。</p>' +
+      '<div class="field"><label>新的家庭代碼（至少 8 個字，只能用英文、數字、減號）</label>' +
+      '<input class="big-input" id="f-code" autocapitalize="none" autocomplete="off" ' +
+      'spellcheck="false" placeholder="例如 cookie-a1b2c3d4"></div>',
+    okText: '更換',
+    validate: (body) => {
+      const code = body.querySelector('#f-code').value.trim().toLowerCase().replace(/\s+/g, '-');
+      if (code.length < 8) {
+        toast('代碼至少要 8 個字');
+        return null;
+      }
+      if (!/^[a-z0-9-]+$/.test(code)) {
+        toast('只能使用英文字母、數字和減號');
+        return null;
+      }
+      if (code === store.familyCode) {
+        toast('跟目前的代碼一樣');
+        return null;
+      }
+      return code;
+    },
+  });
+
+  if (result) CTX.switchFamily(result);
 }
 
 function renderSwitches() {

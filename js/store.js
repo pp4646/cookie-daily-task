@@ -75,10 +75,6 @@ export function rememberFamilyCode(code) {
   localStorage.setItem('cookie.familyCode', code);
 }
 
-export function forgetFamilyCode() {
-  localStorage.removeItem('cookie.familyCode');
-}
-
 // ---------------------------------------------------------------- 本機模式
 
 function localImpl(code) {

@@ -13,6 +13,8 @@ from playwright.sync_api import sync_playwright
 
 BASE = os.environ.get("BASE_URL", "http://localhost:8765")
 SHOTS = os.path.join(os.path.dirname(__file__), "..", ".screenshots")
+# 每次都用新的家庭代碼，否則上一輪留下的設定（例如關掉注音）會影響這一輪
+FAMILY = os.environ.get("TEST_FAMILY", "smoketest-" + os.urandom(4).hex())
 
 problems = []
 steps = []
@@ -24,11 +26,11 @@ def step(name):
 
 
 def run(page):
-    page.goto(BASE, wait_until="networkidle")
+    page.goto(BASE, wait_until="domcontentloaded")
 
     # --- 首次設定 ---
     page.wait_for_selector("#setup:not(.hidden)", timeout=10000)
-    page.fill("#setup-code", "smoke-test-family")
+    page.fill("#setup-code", FAMILY)
     page.click("#setup-go")
     page.wait_for_selector("#app:not(.hidden)", timeout=10000)
     page.wait_for_selector(".task", timeout=10000)
@@ -146,7 +148,7 @@ def run(page):
     page.screenshot(path=os.path.join(SHOTS, "06-no-zhuyin.png"))
 
     # --- 重新整理後資料保留 ---
-    page.reload(wait_until="networkidle")
+    page.reload(wait_until="domcontentloaded")
     page.wait_for_selector(".task", timeout=10000)
     kept = page.locator(".task.done").count()
     if kept == 0:
@@ -156,6 +158,7 @@ def run(page):
 
 def main():
     os.makedirs(SHOTS, exist_ok=True)
+    print(f"測試家庭代碼：{FAMILY}\n")
     console_errors = []
 
     with sync_playwright() as p:
