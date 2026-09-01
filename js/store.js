@@ -10,6 +10,20 @@ import { DEFAULT_FAMILY_CODE, firebaseConfig, isCloudConfigured } from './config
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2';
 
+// 星期對照：0=日 1=一 2=二 3=三 4=四 5=五 6=六
+const EVERYDAY = [0, 1, 2, 3, 4, 5, 6];
+
+/** Cookie 的每日任務。改這裡只會影響「全新的家庭代碼」，
+ *  已經在用的資料要在 App 的家長頁修改。 */
+export const COOKIE_TASKS = [
+  { title: '上51英文課', emoji: '🔤', points: 1, weekdays: [2, 4, 5] },
+  { title: '整理書包(文、聯、國、資、古、作)', emoji: '🎒', points: 1, weekdays: [0, 1, 2, 3, 4] },
+  { title: '說出3件今天發生的好事', emoji: '😊', points: 1, weekdays: [0, 6] },
+  { title: '閱讀一本書', emoji: '📖', points: 1, weekdays: EVERYDAY },
+  { title: '幫忙做家事', emoji: '🧹', points: 1, weekdays: EVERYDAY },
+  { title: '說出今天控制住自己的一件事', emoji: '💪', points: 1, weekdays: EVERYDAY },
+];
+
 export const DEFAULT_CONFIG = () => ({
   schema: 1,
   parentPin: '1234',
@@ -17,13 +31,7 @@ export const DEFAULT_CONFIG = () => ({
   kidFont: 'hei',
   kids: [{ id: 'k1', name: 'Cookie', emoji: '🐶' }],
   points: { k1: 0 },
-  templates: [
-    tpl('k1', '刷牙洗臉', '🪥', 1),
-    tpl('k1', '整理書包', '🎒', 2),
-    tpl('k1', '寫功課', '✏️', 3),
-    tpl('k1', '閱讀二十分鐘', '📖', 2),
-    tpl('k1', '幫忙做家事', '🧹', 2),
-  ],
+  templates: COOKIE_TASKS.map((t) => tpl('k1', t)),
   rewards: [
     { id: rid(), name: '看一集卡通', emoji: '📺', cost: 10, active: true },
     { id: rid(), name: '去公園玩', emoji: '🛝', cost: 20, active: true },
@@ -32,7 +40,7 @@ export const DEFAULT_CONFIG = () => ({
   redemptions: [],
 });
 
-function tpl(kidId, title, emoji, points) {
+function tpl(kidId, { title, emoji, points, weekdays }) {
   return {
     id: rid(),
     kidId,
@@ -40,7 +48,7 @@ function tpl(kidId, title, emoji, points) {
     emoji,
     points,
     zhuyin: '',
-    weekdays: [0, 1, 2, 3, 4, 5, 6],
+    weekdays,
     active: true,
   };
 }
