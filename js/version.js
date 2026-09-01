@@ -4,5 +4,5 @@
 //   2. 在 CHANGELOG.md 補上這一版的修改內容
 // Service Worker 的快取名稱會帶上這個版本號，所以改號碼就會自動更新使用者的 App。
 
-export const VERSION = '1.4.0';
+export const VERSION = '1.5.0';
 export const VERSION_DATE = '2026-09-01';

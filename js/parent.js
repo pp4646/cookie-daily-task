@@ -18,12 +18,33 @@ let activeTab = 'tasks';
 let calMonth = null; // {y, m}
 let CTX = null;
 
+// 解鎖後閒置這麼久就自動上鎖，避免家長忘記按「完成」就把 iPad 給小孩
+const IDLE_LOCK_MS = 3 * 60 * 1000;
+let idleTimer = null;
+
+/** 鎖回家長專區。離開家長頁、切到別的 App、閒置太久都會呼叫。 */
+export function lockParent() {
+  clearTimeout(idleTimer);
+  if (!unlocked) return;
+  unlocked = false;
+  if (CTX) renderParent(CTX);
+}
+
+function armIdleTimer() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    lockParent();
+    toast('閒置太久，已自動鎖定家長專區');
+  }, IDLE_LOCK_MS);
+}
+
 /** 每一個變更都會馬上寫入，這裡只負責讓家長看得到已經存好了 */
 async function save(mutate, message) {
   await CTX.patchConfig(mutate);
   CTX.renderAll();
   renderParent(CTX);
   toast(message);
+  if (unlocked) armIdleTimer();
 }
 
 export function initParent(ctx) {
@@ -34,6 +55,22 @@ export function initParent(ctx) {
       activeTab = tab.dataset.tab;
       renderParent(CTX);
     };
+  });
+
+  $('#parent-done').onclick = () => {
+    lockParent();
+    CTX.switchView('today');
+    toast('已鎖定家長專區 🔒');
+  };
+
+  // 在家長頁的任何操作都算「還在用」，重新計時
+  $('#view-parent').addEventListener('pointerdown', () => {
+    if (unlocked) armIdleTimer();
+  });
+
+  // 切到別的 App 或關掉螢幕就立刻上鎖
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') lockParent();
   });
 }
 
@@ -82,6 +119,7 @@ function wirePinPad() {
         unlocked = true;
         entered = '';
         paint();
+        armIdleTimer();
         renderParent(CTX);
       } else {
         $('#pin-err').classList.remove('hidden');

@@ -538,6 +538,14 @@ main {
   font-weight: 600;
 }
 
+.center { text-align: center; }
+
+.parent-done {
+  margin-top: 28px;
+  font-size: 18px;
+  min-height: 56px;
+}
+
 .admin-list { display: flex; flex-direction: column; gap: 10px; }
 .admin-row {
   display: flex;

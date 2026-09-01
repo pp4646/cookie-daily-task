@@ -2,7 +2,7 @@
 
 import { DEFAULT_CONFIG, rememberFamilyCode, rid, savedFamilyCode, store } from './store.js';
 import { isCloudConfigured } from './config.js';
-import { initParent, renderParent } from './parent.js';
+import { initParent, lockParent, renderParent } from './parent.js';
 import { VERSION } from './version.js';
 import {
   $, $$, addDays, confetti, dayLabel, escapeHTML, loadZhuyin, modal, parseDate,
@@ -449,6 +449,9 @@ async function redeem(reward) {
 // =========================================================== 導覽
 
 function switchView(view) {
+  // 離開家長頁就鎖回去，避免 iPad 交給小孩時設定還是開著的
+  if (state.view === 'parent' && view !== 'parent') lockParent();
+
   state.view = view;
   $$('.view').forEach((v) => v.classList.add('hidden'));
   $(`#view-${view}`).classList.remove('hidden');
