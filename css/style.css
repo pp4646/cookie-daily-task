@@ -777,6 +777,36 @@ main {
   100% { transform: translateY(105vh) rotate(540deg); opacity: 0.9; }
 }
 
+/* ============================ 更新提示 ============================ */
+
+.update-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(84px + var(--safe-b));
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  border-radius: 16px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, var(--blue), #3b7fd4);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(50, 90, 150, 0.35);
+  z-index: 250;
+  animation: slide-up 0.3s ease;
+}
+.update-bar:active { transform: scale(0.98); }
+.update-icon { font-size: 22px; }
+.update-text { flex: 1; text-align: left; }
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }

@@ -50,6 +50,9 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
+  // 版本檢查一定要拿到伺服器上最新的，不能給快取
+  if (url.pathname.endsWith('/js/version.js') && url.searchParams.has('ts')) return;
+
   // Firestore 的即時連線不能攔截
   if (url.hostname.endsWith('googleapis.com')) return;
 

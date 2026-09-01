@@ -66,6 +66,7 @@ async function boot() {
   $('#app').classList.remove('hidden');
   wireEvents();
   initParent(ctx);
+  checkForUpdate();
 }
 
 function askFamilyCode() {
@@ -107,7 +108,55 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   if (location.protocol === 'file:') return; // 直接開檔時不支援
   // 帶上版本號：改版本就會抓到新的 Service Worker
-  navigator.serviceWorker.register(`sw.js?v=${VERSION}`).catch(() => {});
+  navigator.serviceWorker
+    .register(`sw.js?v=${VERSION}`)
+    .then((reg) => reg.update().catch(() => {}))
+    .catch(() => {});
+}
+
+// ------------------------------------------------------- 自動偵測新版本
+//
+// Service Worker 為了離線功能會優先給快取，所以光靠它，新版通常要開第二、
+// 三次才會生效。這裡每次開啟時直接跟伺服器問一次目前的版本號（不走快取），
+// 發現不一樣就跳出提示，讓使用者點一下立刻換成新版。
+
+async function checkForUpdate() {
+  if (location.protocol === 'file:' || !navigator.onLine) return;
+  try {
+    const res = await fetch(`js/version.js?ts=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) return;
+    const latest = (await res.text()).match(/VERSION\s*=\s*'([^']+)'/)?.[1];
+    if (latest && latest !== VERSION) showUpdateBar(latest);
+  } catch {
+    /* 離線或連不上就當作沒有新版 */
+  }
+}
+
+function showUpdateBar(latest) {
+  const bar = $('#update-bar');
+  if (!bar || !bar.classList.contains('hidden')) return;
+  $('#update-version').textContent = latest;
+  bar.classList.remove('hidden');
+  bar.onclick = applyUpdate;
+}
+
+/** 清掉所有快取與 Service Worker 再重新載入，確保拿到全新的檔案 */
+async function applyUpdate() {
+  $('#update-bar').classList.add('hidden');
+  toast('更新中…');
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch {
+    /* 清不掉也還是重新載入，至少 index.html 會是新的 */
+  }
+  location.reload();
 }
 
 function applyPreferences(cfg) {
@@ -441,7 +490,10 @@ function wireEvents() {
   };
   setInterval(checkRollover, 60000);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') checkRollover();
+    if (document.visibilityState === 'visible') {
+      checkRollover();
+      checkForUpdate(); // App 一直開著也要能發現新版
+    }
   });
 }
 
