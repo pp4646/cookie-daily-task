@@ -1,5 +1,7 @@
 # Cookie 的每日挑戰 🌟
 
+**線上網址：<https://pp4646.github.io/cookie-daily-task/>**
+
 給小朋友用的每日任務打勾 App。iPad 加入主畫面之後，用起來就跟一般 App 一樣。
 
 - ✅ 每天的任務清單，點一下打勾，有動畫和音效
