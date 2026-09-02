@@ -3,9 +3,9 @@
 
 預設是唯讀的預覽模式，加上 --apply 才會真的寫入。
 
-用法：
-    python tools/apply_tasks.py --code cookie-20181025            # 只看現況
-    python tools/apply_tasks.py --code cookie-20181025 --apply    # 實際寫入
+用法（把 <你的家庭代碼> 換成實際的代碼，代碼請勿寫進這個 repo）：
+    python tools/apply_tasks.py --code <你的家庭代碼>            # 只看現況
+    python tools/apply_tasks.py --code <你的家庭代碼> --apply    # 實際寫入
 """
 import argparse
 import json

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """開啟線上 App 並截圖，用來目視確認實際畫面。
 
-用法：
-    python tools/screenshot_live.py cookie-20181025
+用法（家庭代碼請勿寫進這個 repo）：
+    python tools/screenshot_live.py <你的家庭代碼>
 """
 import os
 import sys
@@ -12,7 +12,10 @@ from playwright.sync_api import sync_playwright
 BASE = "https://pp4646.github.io/cookie-daily-task/"
 SHOTS = os.path.join(os.path.dirname(__file__), "..", ".screenshots")
 
-code = sys.argv[1] if len(sys.argv) > 1 else "cookie-20181025"
+if len(sys.argv) < 2:
+    sys.exit("請帶入家庭代碼：python tools/screenshot_live.py <你的家庭代碼>")
+
+code = sys.argv[1]
 os.makedirs(SHOTS, exist_ok=True)
 
 with sync_playwright() as p:
